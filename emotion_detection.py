@@ -11,14 +11,21 @@ HEADERS = {"grpc-metadata-mm-model-id": "emotion_aggregated-workflow_lang_en_sto
 def max_score(scores_dict):
     return max(scores_dict, key=scores_dict.get)
 
+
 def emotion_detector(text_to_analyse):
     res = requests.post(EP_URL,
     headers=HEADERS, 
     json={"raw_document": {"text": str(text_to_analyse)}})
+
+    emotions = ['joy', 'anger', 'sadness', 'disgust', 'fear', 'dominant_emotion']
+    default_scores = dict.fromkeys(emotions, None)
+
     if res.status_code == 200:
         resp_json = json.loads(res.text)
         scores = resp_json["emotionPredictions"][0]["emotion"]
         scores["dominant_emotion"] = max_score(scores)
         return scores
+    elif res.status_code == 400:
+        return default_scores
     else:
         raise Exception(f"Something went wrong: ERROR {res.status_code} - {rex.text}")
